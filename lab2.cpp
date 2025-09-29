@@ -19,7 +19,7 @@ struct User {
     }
 };
 
-bool insertUser(User*& head, const string& username, const string& password);
+bool insertUser(User*& head, const string& username, const string& password, const string& role = "viewer");
 User* findUser(User* head, const string& username);
 bool authenticate(User* head, const string& username, const string& password);
 void printUsers(User* head);
@@ -73,9 +73,9 @@ int main() {
 // Otherwise insert and return true.
 
 // Runtime: Big O(n) - May have to go through the entire list.
-bool insertUser(User*& head, const string& username, const string& password) {
+bool insertUser(User*& head, const string& username, const string& password, const string& role = "viewer") {
     if (head == nullptr){
-        head = new User(username, password);
+        head = new User(username, password, role);
         return true;
     }
     User* current = head;
@@ -86,7 +86,7 @@ bool insertUser(User*& head, const string& username, const string& password) {
         break;
         current = current->next;
     }
-    current->next = new User(username,password);
+    current->next = new User(username,password, role);
    
     return true;
 }
