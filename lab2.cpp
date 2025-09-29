@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
 
 // -----------------------------
@@ -8,18 +9,18 @@ using namespace std;
 struct User {
     string username;
     string password; 
-    string role;
+    vector<string> permissions;
     User* next;
     
-    User(const string& u, const string& p, const string& r = "viewer") {
+    User(const string& u, const string& p, const vector<string>& perms = {"view"}) {
         username = u;
         password = p;
-        role = r;
+        permissions = perms;
         next = nullptr;
     }
 };
 
-bool insertUser(User*& head, const string& username, const string& password, const string& role = "viewer");
+bool insertUser(User*& head, const string& username, const string& password, const vector<string>& permissions = {"view"});
 bool authorize(User* head, const string& username, const string& action);
 User* findUser(User* head, const string& username);
 bool authenticate(User* head, const string& username, const string& password);
@@ -34,11 +35,11 @@ int main() {
     // Write code here to test your implementation
     User* head = nullptr;
 
-    insertUser(head, "Tyzaya", "COMPSCI", "admin");
-    insertUser(head, "Kuromi", "ABC123", "editor");
-    insertUser(head, "Sammy", "CAT123", "xyz");
-    insertUser(head, "Chris", "BROWN101", "viewer");
-    insertUser(head, "Orlando", "LOL123", "boss");
+    insertUser(head, "Tyzaya", "COMPSCI", {"view", "edit", "create", "delete"});
+    insertUser(head, "Kuromi", "ABC123", {"view", "edit", "create"});
+    insertUser(head, "Sammy", "CAT123", {"view"});
+    insertUser(head, "Chris", "BROWN101", {});
+    insertUser(head, "Orlando", "LOL123", {"xyz"});
 
 
     printUsers(head);
@@ -60,8 +61,8 @@ int main() {
          << (authorize(head, "Chris", "delete") ? "ALLOWED" : "DENIED")
          << "\n";
 
-    cout << "Authorize Orlando to view important documents: "
-         << (authorize(head, "Orlando", "view") ? "ALLOWED" : "DENIED")
+    cout << "Authorize Sammy to view important documents: "
+         << (authorize(head, "Sammy", "view") ? "ALLOWED" : "DENIED")
          << "\n";
 
 
@@ -90,9 +91,9 @@ int main() {
 // Otherwise insert and return true.
 
 // Runtime: Big O(n) - May have to go through the entire list.
-bool insertUser(User*& head, const string& username, const string& password, const string& role) {
+bool insertUser(User*& head, const string& username, const string& password, const vector<string>& permissions) {
     if (head == nullptr){
-        head = new User(username, password, role);
+        head = new User(username, password, permissions);
         return true;
     }
     User* current = head;
@@ -103,7 +104,7 @@ bool insertUser(User*& head, const string& username, const string& password, con
         break;
         current = current->next;
     }
-    current->next = new User(username,password, role);
+    current->next = new User(username,password, permissions);
    
     return true;
 }
@@ -112,21 +113,9 @@ bool authorize(User* head, const string& username, const string& action){
     User* user = findUser(head,username);
     if (!user) return false;
 
-    if (user->role == "admin"){
-        return true;
-    }
-    else if (user->role == "editor"){
-        if (action == "view" || action == "edit" || action == "create") {
+    for (const string& perm : user->permissions) {
+        if(perm == action) {
             return true;
-        } else {
-            return false;
-        }
-    }
-    else if (user->role == "viewer") {
-        if (action == "view") {
-            return true;
-        } else {
-            return false;
         }
     }
     return false;
