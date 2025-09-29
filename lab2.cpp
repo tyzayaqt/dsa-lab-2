@@ -20,6 +20,7 @@ struct User {
 };
 
 bool insertUser(User*& head, const string& username, const string& password, const string& role = "viewer");
+bool authorize(User* head, const string& username, const string& action);
 User* findUser(User* head, const string& username);
 bool authenticate(User* head, const string& username, const string& password);
 void printUsers(User* head);
@@ -33,11 +34,11 @@ int main() {
     // Write code here to test your implementation
     User* head = nullptr;
 
-    insertUser(head, "Tyzaya", "COMPSCI");
-    insertUser(head, "Kuromi", "ABC123");
-    insertUser(head, "Sammy", "CAT123");
-    insertUser(head, "Chris", "BROWN101");
-    insertUser(head, "Orlando", "LOL123");
+    insertUser(head, "Tyzaya", "COMPSCI", "admin");
+    insertUser(head, "Kuromi", "ABC123", "editor");
+    insertUser(head, "Sammy", "CAT123", "xyz");
+    insertUser(head, "Chris", "BROWN101", "viewer");
+    insertUser(head, "Orlando", "LOL123", "boss");
 
 
     printUsers(head);
@@ -47,6 +48,22 @@ int main() {
     cout << "Authenticating the user Tyzaya: ";
     cout << (authenticate(head, "Tyzaya", "COMPSCI") ? "OK" : "FAILED.") << "\n";
     
+        cout << "Authorize Tyzaya to delete important documents: "
+         << (authorize(head, "Tyzaya", "delete") ? "ALLOWED" : "DENIED")
+         << "\n";
+
+    cout << "Authorize Kuromi to edit documents: "
+         << (authorize(head, "Kuromi", "edit") ? "ALLOWED" : "DENIED")
+         << "\n";
+    
+    cout << "Authorize Chris to delete important documents: "
+         << (authorize(head, "Chris", "delete") ? "ALLOWED" : "DENIED")
+         << "\n";
+
+    cout << "Authorize Orlando to view important documents: "
+         << (authorize(head, "Orlando", "view") ? "ALLOWED" : "DENIED")
+         << "\n";
+
 
     cout << "Deleting the front user: ";
     removeFront(head);
@@ -73,7 +90,7 @@ int main() {
 // Otherwise insert and return true.
 
 // Runtime: Big O(n) - May have to go through the entire list.
-bool insertUser(User*& head, const string& username, const string& password, const string& role = "viewer") {
+bool insertUser(User*& head, const string& username, const string& password, const string& role) {
     if (head == nullptr){
         head = new User(username, password, role);
         return true;
@@ -89,6 +106,30 @@ bool insertUser(User*& head, const string& username, const string& password, con
     current->next = new User(username,password, role);
    
     return true;
+}
+
+bool authorize(User* head, const string& username, const string& action){
+    User* user = findUser(head,username);
+    if (!user) return false;
+
+    if (user->role == "admin"){
+        return true;
+    }
+    else if (user->role == "editor"){
+        if (action == "view" || action == "edit" || action == "create") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    else if (user->role == "viewer") {
+        if (action == "view") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return false;
 }
 
 // Returns pointer to the node with matching username; otherwise nullptr.
